@@ -1,0 +1,17 @@
+[project]
+name = "ambient-expense-agent"
+version = "0.1.0"
+description = "Ambient Expense Agent Backend using Google Gemini API and FastAPI"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "google-agents>=2.0.0",
+    "google-genai>=0.1.0",
+    "fastapi>=0.111.0",
+    "uvicorn>=0.30.0",
+    "pydantic>=2.0.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

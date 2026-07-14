@@ -1,0 +1,28 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: ambient-expense-agent
+  labels:
+    cloud.googleapis.com/location: us-central1
+spec:
+  template:
+    metadata:
+      annotations:
+        # Scale to zero when idle to minimize costs
+        autoscaling.knative.dev/minScale: "0"
+        autoscaling.knative.dev/maxScale: "10"
+    spec:
+      containerConcurrency: 80
+      containers:
+        - image: us-central1-docker.pkg.dev/${PROJECT_ID}/agent-runtime-repo/ambient-expense-agent:latest
+          resources:
+            limits:
+              memory: 512Mi
+              cpu: 1000m
+          ports:
+            - containerPort: 8080
+          env:
+            - name: GEMINI_API_KEY
+              value: "PASTE_YOUR_API_KEY_HERE"
+            - name: ENV
+              value: "production"

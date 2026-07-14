@@ -1,0 +1,48 @@
+steps:
+  # 1. Build the production Docker container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - '${_AR_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO_NAME}/ambient-expense-agent:${COMMIT_SHA}'
+      - '-t'
+      - '${_AR_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO_NAME}/ambient-expense-agent:latest'
+      - '.'
+
+  # 2. Push the Docker image to Google Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - '${_AR_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO_NAME}/ambient-expense-agent:${COMMIT_SHA}'
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - '${_AR_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO_NAME}/ambient-expense-agent:latest'
+
+  # 3. Substitute PROJECT_ID in cloud-run.yaml before replacement
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - 'sed -i "s/\${PROJECT_ID}/$PROJECT_ID/g" cloud-run.yaml'
+
+  # 4. Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'services'
+      - 'replace'
+      - 'cloud-run.yaml'
+      - '--platform=managed'
+      - '--region=${_RUN_REGION}'
+
+# Default values for substitution parameters
+substitutions:
+  _AR_REGION: 'us-central1'
+  _AR_REPO_NAME: 'agent-runtime-repo'
+  _RUN_REGION: 'us-central1'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
